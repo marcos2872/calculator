@@ -1,0 +1,46 @@
+import { Button, VerticalBox, HorizontalBox } from "std-widgets.slint";
+
+export component AppWindow inherits Window {
+    title: "Calculator";
+    preferred-width: 400px;
+    preferred-height: 800px;
+    icon: @image-url("../assets/logo.png");
+
+    in-out property <int> counter: 0;
+    callback increment-counter();
+    callback decrement-counter();
+    VerticalBox {
+        alignment: center;
+        Text {
+            text: "Bem-vindo ao Slint!";
+            font-size: 24px;
+            horizontal-alignment: center;
+        }
+
+        Text {
+            text: "Contador: " + counter;
+            font-size: 32px;
+            horizontal-alignment: center;
+            color: #0066cc;
+        }
+
+        HorizontalBox {
+            alignment: center;
+            spacing: 20px;
+            Button {
+                text: "➖ Decrementar";
+                clicked => {
+                    root.decrement-counter();
+                }
+            }
+
+            Button {
+                text: "➕ Incrementar";
+                primary: true;
+                clicked => {
+                    root.increment-counter();
+                }
+            }
+        }
+    }
+}
