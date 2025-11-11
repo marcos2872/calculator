@@ -15,7 +15,8 @@ RED := \033[31m
 NC := \033[0m # No Color
 
 # Targets principais
-.PHONY: help build run watch clean release test fmt clippy install-deps all
+.PHONY: help build run watch clean release test fmt clippy install-deps all \
+	install-packaging-deps package-prep package-deb package-rpm package-arch package-arch-pkgbuild packages packaging-clean
 
 # Target padrão
 all: build
@@ -34,6 +35,13 @@ help:
 	@echo "  ${GREEN}clippy${NC}       - Executa o linter clippy"
 	@echo "  ${GREEN}clean${NC}        - Remove arquivos de build"
 	@echo "  ${GREEN}install-deps${NC} - Instala dependências necessárias"
+	@echo "  ${GREEN}install-packaging-deps${NC} - Instala ferramentas para empacotar (.deb/.rpm)"
+	@echo "  ${GREEN}package-deb${NC}  - Gera pacote .deb (Debian/Ubuntu) via fpm"
+	@echo "  ${GREEN}package-rpm${NC}  - Gera pacote .rpm (Fedora/RHEL/openSUSE) via fpm"
+	@echo "  ${GREEN}package-arch${NC} - Gera pacote Arch Linux (.pkg.tar.*) via fpm"
+	@echo "  ${GREEN}package-arch-pkgbuild${NC} - Gera pacote Arch usando PKGBUILD + makepkg (nativo)"
+	@echo "  ${GREEN}packages${NC}     - Gera .deb, .rpm e pacote Arch"
+	@echo "  ${GREEN}packaging-clean${NC} - Limpa artefatos de empacotamento (dist/)"
 	@echo "  ${GREEN}all${NC}          - Executa build (target padrão)"
 	@echo "  ${GREEN}help${NC}         - Exibe esta ajuda"
 
@@ -128,3 +136,145 @@ info:
 	@echo "${BLUE}📈 Estatísticas do código:${NC}"
 	@find src/ -name "*.rs" -exec wc -l {} + 2>/dev/null | tail -1 | awk '{print "  Linhas de código Rust: " $$1}' || echo "  Linhas de código: Não disponível"
 	@find ui/ -name "*.slint" -exec wc -l {} + 2>/dev/null | tail -1 | awk '{print "  Linhas de código Slint: " $$1}' || echo "  Linhas de UI: Não disponível"
+
+# ==============================
+# Empacotamento (.deb e .rpm)
+# Estratégia: usamos o fpm para gerar pacotes a partir de um diretório staging.
+# Em Arch Linux, você pode instalar o fpm via RubyGems.
+# ==============================
+
+# Coleta a versão do Cargo.toml (primeira ocorrência de version = "x.y.z")
+VERSION := $(shell sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -n1)
+ARCH := $(shell uname -m)
+# Mapeia arquitetura para formato Debian
+DEB_ARCH := $(if $(filter $(ARCH),x86_64),amd64,$(if $(filter $(ARCH),aarch64),arm64,$(ARCH)))
+RPM_ARCH := $(ARCH)
+
+# Diretórios de saída
+DIST_DIR := dist
+PKGROOT := $(DIST_DIR)/pkgroot
+DEB_OUT := $(DIST_DIR)/deb
+RPM_OUT := $(DIST_DIR)/rpm
+ARCH_OUT := $(DIST_DIR)/arch
+
+# Instala ferramentas de empacotamento (requer sudo para pacman/gem)
+install-packaging-deps:
+	@echo "${BLUE}📦 Instalando ferramentas de empacotamento (fpm)...${NC}"
+	@if command -v fpm >/dev/null 2>&1; then \
+		echo "${GREEN}✅ fpm já instalado${NC}"; \
+	else \
+		echo "${YELLOW}⚠️  fpm não encontrado.${NC}"; \
+		echo "${YELLOW}Em Arch Linux, você pode instalar via:${NC}"; \
+		echo "  sudo pacman -S --needed ruby ruby-rdoc"; \
+		echo "  sudo gem install --no-document fpm"; \
+		echo "${YELLOW}Ou via AUR: ruby-fpm${NC}"; \
+	fi
+
+# Prepara diretório staging com binário e recursos
+package-prep: release packaging-clean
+	@echo "${BLUE}📁 Preparando diretório staging para empacotamento...${NC}"
+	@mkdir -p $(PKGROOT)/usr/bin
+	@mkdir -p $(PKGROOT)/usr/share/$(PROJECT_NAME)/assets
+	@mkdir -p $(PKGROOT)/usr/share/$(PROJECT_NAME)/ui
+	@install -m 0755 target/release/$(PROJECT_NAME) $(PKGROOT)/usr/bin/$(PROJECT_NAME)
+	@# Copia recursos (se existirem)
+	@if [ -d assets ]; then cp -a assets/. $(PKGROOT)/usr/share/$(PROJECT_NAME)/assets/; fi
+	@if [ -d ui ]; then cp -a ui/. $(PKGROOT)/usr/share/$(PROJECT_NAME)/ui/; fi
+	@echo "${GREEN}✅ Staging pronto em $(PKGROOT)${NC}"
+
+# Gera pacote .deb usando fpm
+package-deb: package-prep
+	@echo "${BLUE}📦 Gerando pacote .deb (Debian/Ubuntu)...${NC}"
+	@if ! command -v fpm >/dev/null 2>&1; then \
+		echo "${RED}❌ fpm não está instalado. Execute: make install-packaging-deps${NC}"; \
+		exit 1; \
+	fi
+	@mkdir -p $(DEB_OUT)
+	@fpm -s dir -t deb \
+		-n $(PROJECT_NAME) \
+		-v $(VERSION) \
+		-a $(DEB_ARCH) \
+		--description "Calculator (Rust + Slint)" \
+		--license "MIT" \
+		--url "https://github.com/marcos2872/calculator" \
+		--maintainer "Marcos" \
+		--deb-compression xz \
+		--prefix / \
+		-C $(PKGROOT) \
+		-p $(DEB_OUT)/
+	@echo "${GREEN}✅ Pacote .deb gerado em $(DEB_OUT)${NC}"
+
+# Gera pacote .rpm usando fpm
+package-rpm: package-prep
+	@echo "${BLUE}📦 Gerando pacote .rpm (Fedora/RHEL/openSUSE)...${NC}"
+	@if ! command -v fpm >/dev/null 2>&1; then \
+		echo "${RED}❌ fpm não está instalado. Execute: make install-packaging-deps${NC}"; \
+		exit 1; \
+	fi
+	@mkdir -p $(RPM_OUT)
+	@fpm -s dir -t rpm \
+		-n $(PROJECT_NAME) \
+		-v $(VERSION) \
+		-a $(RPM_ARCH) \
+		--description "Calculator (Rust + Slint)" \
+		--license "MIT" \
+		--url "https://github.com/marcos2872/calculator" \
+		--maintainer "Marcos" \
+		--prefix / \
+		-C $(PKGROOT) \
+		-p $(RPM_OUT)/
+	@echo "${GREEN}✅ Pacote .rpm gerado em $(RPM_OUT)${NC}"
+
+# Gera ambos os pacotes
+packages: package-deb package-rpm
+	@echo "${GREEN}🎉 Pacotes gerados em $(DIST_DIR): .deb e .rpm${NC}"
+
+# Gera pacote Arch Linux usando fpm (formato pacman)
+package-arch: package-prep
+	@echo "${BLUE}📦 Gerando pacote Arch Linux (.pkg.tar.*) via fpm...${NC}"
+	@if ! command -v fpm >/dev/null 2>&1; then \
+		echo "${RED}❌ fpm não está instalado. Execute: make install-packaging-deps${NC}"; \
+		exit 1; \
+	fi
+	@mkdir -p $(ARCH_OUT)
+	@fpm -s dir -t pacman \
+		-n $(PROJECT_NAME) \
+		-v $(VERSION) \
+		-a $(ARCH) \
+		--description "Calculator (Rust + Slint)" \
+		--license "MIT" \
+		--url "https://github.com/marcos2872/calculator" \
+		--maintainer "Marcos" \
+		--prefix / \
+		-C $(PKGROOT) \
+		-p $(ARCH_OUT)/
+	@echo "${GREEN}✅ Pacote Arch gerado em $(ARCH_OUT)${NC}"
+
+# Gera todos os pacotes, incluindo Arch
+packages: package-arch
+
+# Gera pacote Arch usando PKGBUILD + makepkg (método nativo do Arch Linux)
+package-arch-pkgbuild: release
+	@echo "${BLUE}📦 Gerando pacote Arch Linux usando PKGBUILD + makepkg...${NC}"
+	@if ! command -v makepkg >/dev/null 2>&1; then \
+		echo "${RED}❌ makepkg não está instalado (instale pacman/base-devel)${NC}"; \
+		exit 1; \
+	fi
+	@echo "${YELLOW}📁 Preparando tarball de fontes...${NC}"
+	@mkdir -p $(DIST_DIR)/arch-pkgbuild
+	@# Cria tarball temporário com os fontes
+	@tar --exclude='target' --exclude='dist' --exclude='.git' \
+		-czf $(DIST_DIR)/arch-pkgbuild/$(PROJECT_NAME)-$(VERSION).tar.gz \
+		-C .. $(notdir $(CURDIR))
+	@# Copia o PKGBUILD para o diretório de build
+	@cp packaging/arch/PKGBUILD $(DIST_DIR)/arch-pkgbuild/
+	@echo "${YELLOW}🔨 Executando makepkg...${NC}"
+	@cd $(DIST_DIR)/arch-pkgbuild && \
+		PKGEXT='.pkg.tar.zst' makepkg -f --skipinteg
+	@echo "${GREEN}✅ Pacote Arch (PKGBUILD) gerado em $(DIST_DIR)/arch-pkgbuild/${NC}"
+	@echo "${YELLOW}💡 Para instalar: sudo pacman -U $(DIST_DIR)/arch-pkgbuild/$(PROJECT_NAME)-$(VERSION)-1-*.pkg.tar.zst${NC}"
+
+# Limpa somente artefatos de empacotamento
+packaging-clean:
+	@rm -rf $(DIST_DIR)
+	@mkdir -p $(DIST_DIR)
