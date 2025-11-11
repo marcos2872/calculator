@@ -10,7 +10,9 @@ export component CalcButton {
         border-radius: 24px;
         border-color: #555555;
 
-        background: root.bg_color;
+        background: ta.pressed ? root.bg_color.darker(1.2) : root.bg_color;
+
+        animate background { duration: 100ms; }
 
         Text {
             width: parent.width;

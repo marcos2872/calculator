@@ -4,6 +4,7 @@ import {
     HorizontalBox,
     StandardButton,
     TextEdit,
+    ScrollView,
 } from "std-widgets.slint";
 import { CalcButton } from "components/button.slint";
 
@@ -33,9 +34,11 @@ export component AppWindow inherits Window {
         HorizontalBox {
             alignment: end;
             width: parent.width;
+
             TextInput {
                 text: calc;
                 font-size: 48px;
+                enabled: false;
                 horizontal-alignment: right;
                 vertical-alignment: center;
             }
