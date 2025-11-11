@@ -16,7 +16,7 @@ NC := \033[0m # No Color
 
 # Targets principais
 .PHONY: help build run watch clean release test fmt clippy install-deps all \
-	install-packaging-deps package-prep package-deb package-rpm package-arch package-arch-pkgbuild packages packaging-clean
+	install-packaging-deps package-prep package-deb package-rpm package-arch package-arch-pkgbuild packages packages-available packaging-clean
 
 # Target padrão
 all: build
@@ -41,6 +41,7 @@ help:
 	@echo "  ${GREEN}package-arch${NC} - Gera pacote Arch Linux (.pkg.tar.*) via fpm"
 	@echo "  ${GREEN}package-arch-pkgbuild${NC} - Gera pacote Arch usando PKGBUILD + makepkg (nativo)"
 	@echo "  ${GREEN}packages${NC}     - Gera .deb, .rpm e pacote Arch"
+	@echo "  ${GREEN}packages-available${NC} - Gera pacotes conforme ferramentas disponíveis"
 	@echo "  ${GREEN}packaging-clean${NC} - Limpa artefatos de empacotamento (dist/)"
 	@echo "  ${GREEN}all${NC}          - Executa build (target padrão)"
 	@echo "  ${GREEN}help${NC}         - Exibe esta ajuda"
@@ -167,7 +168,17 @@ install-packaging-deps:
 		echo "${YELLOW}Em Arch Linux, você pode instalar via:${NC}"; \
 		echo "  sudo pacman -S --needed ruby ruby-rdoc"; \
 		echo "  sudo gem install --no-document fpm"; \
+		echo "  export PATH=\"\$$HOME/.local/share/gem/ruby/3.4.0/bin:\$$PATH\""; \
 		echo "${YELLOW}Ou via AUR: ruby-fpm${NC}"; \
+	fi
+	@echo ""
+	@if command -v rpmbuild >/dev/null 2>&1; then \
+		echo "${GREEN}✅ rpmbuild já instalado${NC}"; \
+	else \
+		echo "${YELLOW}⚠️  rpmbuild não encontrado (necessário para gerar .rpm)${NC}"; \
+		echo "${YELLOW}Em Arch Linux, você pode instalar via:${NC}"; \
+		echo "  sudo pacman -S rpm-tools"; \
+		echo "${YELLOW}Ou via AUR: rpm-org${NC}"; \
 	fi
 
 # Prepara diretório staging com binário e recursos
@@ -211,6 +222,11 @@ package-rpm: package-prep
 		echo "${RED}❌ fpm não está instalado. Execute: make install-packaging-deps${NC}"; \
 		exit 1; \
 	fi
+	@if ! command -v rpmbuild >/dev/null 2>&1; then \
+		echo "${RED}❌ rpmbuild não está instalado (necessário para gerar .rpm)${NC}"; \
+		echo "${YELLOW}💡 Em Arch Linux, instale com: sudo pacman -S rpm-tools${NC}"; \
+		exit 1; \
+	fi
 	@mkdir -p $(RPM_OUT)
 	@fpm -s dir -t rpm \
 		-n $(PROJECT_NAME) \
@@ -252,6 +268,28 @@ package-arch: package-prep
 
 # Gera todos os pacotes, incluindo Arch
 packages: package-arch
+
+# Gera todos os pacotes disponíveis (conforme ferramentas instaladas)
+packages-available: package-prep
+	@echo "${BLUE}📦 Gerando todos os pacotes disponíveis...${NC}"
+	@PKGS_GENERATED=0; \
+	if command -v fpm >/dev/null 2>&1; then \
+		echo "${YELLOW}Gerando .deb...${NC}"; \
+		$(MAKE) package-deb && PKGS_GENERATED=$$((PKGS_GENERATED + 1)); \
+		if command -v rpmbuild >/dev/null 2>&1; then \
+			echo "${YELLOW}Gerando .rpm...${NC}"; \
+			$(MAKE) package-rpm && PKGS_GENERATED=$$((PKGS_GENERATED + 1)); \
+		else \
+			echo "${YELLOW}⚠️  Pulando .rpm (rpmbuild não instalado)${NC}"; \
+		fi; \
+		echo "${YELLOW}Gerando pacote Arch...${NC}"; \
+		$(MAKE) package-arch && PKGS_GENERATED=$$((PKGS_GENERATED + 1)); \
+	else \
+		echo "${RED}❌ fpm não instalado. Execute: make install-packaging-deps${NC}"; \
+	fi; \
+	if [ $$PKGS_GENERATED -gt 0 ]; then \
+		echo "${GREEN}🎉 $$PKGS_GENERATED pacote(s) gerado(s) em $(DIST_DIR)${NC}"; \
+	fi
 
 # Gera pacote Arch usando PKGBUILD + makepkg (método nativo do Arch Linux)
 package-arch-pkgbuild: release
