@@ -3,6 +3,7 @@ import {
     VerticalBox,
     HorizontalBox,
     StandardButton,
+    TextEdit,
 } from "std-widgets.slint";
 import { CalcButton } from "components/button.slint";
 
@@ -11,16 +12,17 @@ export component AppWindow inherits Window {
     title: "Calculator";
     min-width: 500px;
     max-width: 500px;
-    min-height: 700px;
-    max-height: 700px;
+    min-height: 600px;
+    max-height: 600px;
     icon: @image-url("../assets/logo.png");
     background: #1e1e1ef3;
 
-    in-out property <int> counter: 0;
-    callback increment-counter();
-    callback decrement-counter();
-    callback minimize-window();
-    callback close-window();
+    in-out property <string> calc: "0";
+    callback add-character(string);
+    callback clean();
+    callback calculate();
+    callback delete();
+
     VerticalLayout {
         alignment: end;
         spacing: 0px;
@@ -29,8 +31,13 @@ export component AppWindow inherits Window {
         width: parent.width;
 
         HorizontalBox {
-            Text {
-                text: "teste";
+            alignment: end;
+            width: parent.width;
+            TextInput {
+                text: calc;
+                font-size: 48px;
+                horizontal-alignment: right;
+                vertical-alignment: center;
             }
         }
 
@@ -43,32 +50,34 @@ export component AppWindow inherits Window {
                 bg_color: #303030;
                 text: "C";
                 clicked => {
-                        // root.decrement-counter();
-                    }
+                    root.clean();
+                }
             }
 
             CalcButton {
                 bg_color: #303030;
-                text: "+/-";
+                text: "⌫";
+                text_size: 48px;
+                text_weight: 300;
                 clicked => {
-                        // root.increment-counter();
-                    }
+                    root.delete();
+                }
             }
 
             CalcButton {
                 bg_color: #303030;
                 text: "%";
                 clicked => {
-                        // root.increment-counter();
-                    }
+                    root.add-character("%");
+                }
             }
 
             CalcButton {
                 bg_color: #df7b00;
                 text: "÷";
                 clicked => {
-                        // root.increment-counter();
-                    }
+                    root.add-character("÷");
+                }
             }
 
             CalcButton {
@@ -78,8 +87,8 @@ export component AppWindow inherits Window {
                 bg_color: #3b3b3b;
                 text: "7";
                 clicked => {
-                        // root.decrement-counter();
-                    }
+                    root.add-character("7");
+                }
             }
 
             CalcButton {
@@ -88,8 +97,8 @@ export component AppWindow inherits Window {
                 bg_color: #3b3b3b;
                 text: "8";
                 clicked => {
-                        // root.increment-counter();
-                    }
+                    root.add-character("8");
+                }
             }
 
             CalcButton {
@@ -98,8 +107,8 @@ export component AppWindow inherits Window {
                 bg_color: #3b3b3b;
                 text: "9";
                 clicked => {
-                        // root.increment-counter();
-                    }
+                    root.add-character("9");
+                }
             }
 
             CalcButton {
@@ -108,8 +117,8 @@ export component AppWindow inherits Window {
                 bg_color: #df7b00;
                 text: "x";
                 clicked => {
-                        // root.increment-counter();
-                    }
+                    root.add-character("x");
+                }
             }
 
             CalcButton {
@@ -118,8 +127,8 @@ export component AppWindow inherits Window {
                 bg_color: #3b3b3b;
                 text: "4";
                 clicked => {
-                        // root.decrement-counter();
-                    }
+                    root.add-character("4");
+                }
             }
 
             CalcButton {
@@ -129,8 +138,8 @@ export component AppWindow inherits Window {
                 bg_color: #3b3b3b;
                 text: "5";
                 clicked => {
-                        // root.increment-counter();
-                    }
+                    root.add-character("5");
+                }
             }
 
             CalcButton {
@@ -139,8 +148,8 @@ export component AppWindow inherits Window {
                 bg_color: #3b3b3b;
                 text: "6";
                 clicked => {
-                        // root.increment-counter();
-                    }
+                    root.add-character("6");
+                }
             }
 
             CalcButton {
@@ -150,8 +159,8 @@ export component AppWindow inherits Window {
                 bg_color: #df7b00;
                 text: "-";
                 clicked => {
-                        // root.increment-counter();
-                    }
+                    root.add-character("-");
+                }
             }
 
             CalcButton {
@@ -160,8 +169,8 @@ export component AppWindow inherits Window {
                 bg_color: #3b3b3b;
                 text: "1";
                 clicked => {
-                        // root.decrement-counter();
-                    }
+                    root.add-character("1");
+                }
             }
 
             CalcButton {
@@ -170,8 +179,8 @@ export component AppWindow inherits Window {
                 bg_color: #3b3b3b;
                 text: "2";
                 clicked => {
-                        // root.increment-counter();
-                    }
+                    root.add-character("2");
+                }
             }
 
             CalcButton {
@@ -180,8 +189,8 @@ export component AppWindow inherits Window {
                 bg_color: #3b3b3b;
                 text: "3";
                 clicked => {
-                        // root.increment-counter();
-                    }
+                    root.add-character("3");
+                }
             }
 
             CalcButton {
@@ -190,8 +199,8 @@ export component AppWindow inherits Window {
                 bg_color: #df7b00;
                 text: "+";
                 clicked => {
-                        // root.increment-counter();
-                    }
+                    root.add-character("+");
+                }
             }
 
             CalcButton {
@@ -201,8 +210,8 @@ export component AppWindow inherits Window {
                 bg_color: #3b3b3b;
                 text: "0";
                 clicked => {
-                        // root.decrement-counter();
-                    }
+                    root.add-character("0");
+                }
             }
 
             CalcButton {
@@ -211,8 +220,8 @@ export component AppWindow inherits Window {
                 bg_color: #3b3b3b;
                 text: ".";
                 clicked => {
-                        // root.increment-counter();
-                    }
+                    root.add-character(".");
+                }
             }
 
             CalcButton {
@@ -221,8 +230,8 @@ export component AppWindow inherits Window {
                 bg_color: #df7b00;
                 text: "=";
                 clicked => {
-                        // root.increment-counter();
-                    }
+                    root.calculate();
+                }
             }
         }
     }

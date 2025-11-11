@@ -2,7 +2,8 @@ export component CalcButton {
     callback clicked;
     in-out property <string> text;
     in-out property <brush> bg_color: #343434;
-    in-out property <bool> pressed: ta.pressed;
+    in-out property <length> text_size: 24px;
+    in-out property <int> text_weight: 600;
 
     Rectangle {
         border-width: 0px;
@@ -16,8 +17,8 @@ export component CalcButton {
             height: parent.height;
             text: root.text;
             color: white;
-            font-size: 24px;
-            font-weight: 600;
+            font-size: root.text_size;
+            font-weight: root.text_weight;
             horizontal-alignment: center;
             vertical-alignment: center;
         }
