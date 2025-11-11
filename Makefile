@@ -15,7 +15,7 @@ RED := \033[31m
 NC := \033[0m # No Color
 
 # Targets principais
-.PHONY: help build run watch clean release install-deps all
+.PHONY: help build run watch clean release install-deps appimage all
 
 # Target padrão
 all: build
@@ -31,6 +31,8 @@ help:
 	@echo -e "  ${GREEN}release${NC}      - Compila o projeto em modo release (otimizado)"
 	@echo -e "  ${GREEN}clean${NC}        - Remove arquivos de build"
 	@echo -e "  ${GREEN}install-deps${NC} - Instala cargo-watch para desenvolvimento"
+	@echo -e "  ${GREEN}appimage${NC}     - Gera AppImage (portável)"
+	@echo -e "  ${GREEN}install-appimage${NC} - Instala AppImage gerado"
 	@echo -e "  ${GREEN}all${NC}          - Executa build (target padrão)"
 	@echo -e "  ${GREEN}help${NC}         - Exibe esta ajuda"
 
@@ -74,3 +76,13 @@ install-deps:
 	@echo -e "${BLUE}📦 Instalando cargo-watch...${NC}"
 	$(CARGO) install cargo-watch
 	@echo -e "${GREEN}✅ cargo-watch instalado!${NC}"
+
+# Gera AppImage
+appimage:
+	@chmod +x build-appimage.sh
+	@./build-appimage.sh
+
+# instala AppImage
+install-appimage:
+	@chmod +x install-appimage.sh
+	@./install-appimage.sh

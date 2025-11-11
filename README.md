@@ -76,7 +76,74 @@ cargo build --release
 
 ---
 
-## 🛠️ Tecnologias
+## � AppImage (Build e Instalação)
+
+Gere um executável portátil (.AppImage) para distribuir ou executar a aplicação sem instalar dependências.
+
+Observação: o script baixa automaticamente o appimagetool se não estiver disponível no sistema.
+
+### Gerar o AppImage
+
+Usando Makefile (recomendado):
+
+```bash
+make appimage
+```
+
+Saída esperada:
+
+```
+dist/appimage/calculator-<versão>-<arquitetura>.AppImage
+```
+
+Exemplos de arquitetura: x86_64, aarch64.
+
+### Instalar o AppImage no sistema
+
+Instala em /opt/calculator, cria atalho em /usr/local/bin/calculator e adiciona ao menu de apps.
+
+```bash
+make install-appimage
+```
+
+Alternativa direta com script (caso queira apontar um arquivo específico):
+
+```bash
+sudo ./install-appimage.sh dist/appimage/calculator-<versão>-<arquitetura>.AppImage
+```
+
+Após a instalação, você pode abrir pelo menu como "Calculator" ou via terminal:
+
+```bash
+calculator
+```
+
+### Executar sem instalar
+
+Torne o arquivo executável (se necessário) e rode diretamente:
+
+```bash
+chmod +x dist/appimage/calculator-<versão>-<arquitetura>.AppImage
+./dist/appimage/calculator-<versão>-<arquitetura>.AppImage
+```
+
+### Desinstalar (manual)
+
+Caso tenha usado a instalação acima, remova os arquivos do sistema:
+
+```bash
+sudo rm -rf /opt/calculator
+sudo rm -f /usr/local/bin/calculator \
+			/usr/share/applications/calculator.desktop \
+			/usr/share/pixmaps/calculator.png \
+			/usr/share/icons/hicolor/256x256/apps/calculator.png
+sudo update-desktop-database /usr/share/applications || true
+sudo gtk-update-icon-cache -f /usr/share/icons/hicolor || true
+```
+
+---
+
+## �🛠️ Tecnologias
 
 - **[Rust](https://www.rust-lang.org/)** - Linguagem de programação
 - **[Slint](https://slint.rs/)** - Framework UI
