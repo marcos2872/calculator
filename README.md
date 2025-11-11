@@ -1,20 +1,21 @@
-# Calculator - Aplicação Contador em Rust + Slint
+# Calculator - Calculadora Desktop em Rust + Slint
 
-Uma aplicação desktop simples de contador desenvolvida em Rust usando o framework UI Slint.
+Uma aplicação desktop de calculadora moderna desenvolvida em Rust usando o framework UI Slint.
 
-![Logo](assets/logo.png)
+![Screenshot](images/1.png)
 
 ## 📋 Sobre o Projeto
 
-Este é um projeto de contador básico que demonstra como criar aplicações desktop modernas usando Rust e Slint. A aplicação apresenta uma interface gráfica limpa e responsiva com funcionalidades de incrementar e decrementar um contador.
+Este é um projeto de calculadora desktop que demonstra como criar aplicações modernas usando Rust e Slint. A aplicação apresenta uma interface gráfica limpa inspirada em calculadoras iOS/Android, com design escuro e botões responsivos.
 
 ## ✨ Funcionalidades
 
-- **Contador interativo**: Incrementar e decrementar valores
-- **Interface moderna**: Design escuro com elementos visuais atraentes
-- **Janela personalizada**: Tamanho fixo otimizado para a aplicação
+- **Operações básicas**: Adição, subtração, multiplicação e divisão
+- **Interface moderna**: Design escuro com botões coloridos e responsivos
+- **Layout GridLayout**: Organização eficiente dos botões usando grid
+- **Componentes customizados**: Botões personalizados com cores configuráveis
+- **Janela personalizada**: Tamanho fixo otimizado (500x700px)
 - **Ícone personalizado**: Logo próprio da aplicação
-- **Controles de janela**: Minimizar e fechar a aplicação
 
 ## 🚀 Tecnologias Utilizadas
 
@@ -82,24 +83,30 @@ Para executar este projeto, você precisa ter instalado:
 ```
 calculator/
 ├── src/
-│   └── main.rs          # Código principal da aplicação
+│   └── main.rs                    # Código principal da aplicação
 ├── ui/
-│   └── app.slint        # Interface do usuário em Slint
+│   ├── app.slint                  # Interface principal em Slint
+│   └── components/
+│       └── button.slint           # Componente customizado de botão
 ├── assets/
-│   └── logo.png         # Ícone da aplicação
-├── build.rs             # Script de build do Slint
-├── Cargo.toml           # Configuração do projeto Rust
-├── Makefile             # Comandos de build e desenvolvimento
-└── README.md            # Este arquivo
+│   └── logo.png                   # Ícone da aplicação
+├── images/
+│   └── 1.png                      # Screenshot da aplicação
+├── build.rs                       # Script de build do Slint
+├── Cargo.toml                     # Configuração do projeto Rust
+├── Makefile                       # Comandos de build e desenvolvimento
+└── README.md                      # Este arquivo
 ```
 
 ## 🎯 Como Usar
 
 1. Execute a aplicação usando `make run` ou `cargo run`
-2. A janela da aplicação será aberta com o contador em 0
-3. Use o botão "➕ Incrementar" para adicionar 1 ao contador
-4. Use o botão "➖ Decrementar" para subtrair 1 do contador
-5. Feche a aplicação usando os controles da janela
+2. A janela da calculadora será aberta
+3. Clique nos botões numéricos (0-9) para inserir números
+4. Use os operadores (+, -, x, ÷) para realizar cálculos
+5. Pressione "=" para obter o resultado
+6. Use "C" para limpar a calculadora
+7. Feche a aplicação usando os controles da janela
 
 ### 🔄 Desenvolvimento com Hot Reload
 
@@ -117,17 +124,19 @@ Isso iniciará a aplicação e a recompilará sempre que você modificar arquivo
 
 A interface está definida no arquivo `ui/app.slint`. Você pode:
 
-- Alterar cores, fontes e estilos
-- Adicionar novos componentes
-- Modificar o layout da aplicação
+- Alterar cores dos botões (propriedade `bg_color`)
+- Modificar o layout usando GridLayout
+- Adicionar novos botões e operações
+- Customizar o design do componente CalcButton em `ui/components/button.slint`
 
 ### Modificando a Lógica
 
 O código principal está em `src/main.rs`. Aqui você pode:
 
-- Adicionar novas funcionalidades ao contador
-- Implementar novos callbacks
-- Gerenciar o estado da aplicação
+- Implementar a lógica de cálculo
+- Adicionar callbacks para os botões
+- Gerenciar o estado da calculadora
+- Implementar histórico de operações
 
 ### Build Personalizado
 
@@ -135,8 +144,8 @@ O arquivo `build.rs` configura como o Slint compila os arquivos de UI. Normalmen
 
 ## 📝 Dependências
 
-- **slint**: Framework UI principal (versão 1.8)
-- **slint-build**: Ferramentas de build para desenvolvimento (versão 1.8)
+- **slint**: Framework UI principal (versão 1.14.1)
+- **slint-build**: Ferramentas de build para desenvolvimento (versão 1.14.1)
 
 ## 🤝 Contribuindo
 

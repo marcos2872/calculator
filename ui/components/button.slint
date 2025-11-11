@@ -1,0 +1,31 @@
+export component CalcButton {
+    callback clicked;
+    in-out property <string> text;
+    in-out property <brush> bg_color: #343434;
+    in-out property <bool> pressed: ta.pressed;
+
+    Rectangle {
+        border-width: 0px;
+        border-radius: 24px;
+        border-color: #555555;
+
+        background: root.bg_color;
+
+        Text {
+            width: parent.width;
+            height: parent.height;
+            text: root.text;
+            color: white;
+            font-size: 24px;
+            font-weight: 600;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+
+        ta := TouchArea {
+            clicked => {
+                root.clicked();
+            }
+        }
+    }
+}

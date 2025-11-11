@@ -2,7 +2,9 @@ import {
     Button,
     VerticalBox,
     HorizontalBox,
+    StandardButton,
 } from "std-widgets.slint";
+import { CalcButton } from "components/button.slint";
 
 
 export component AppWindow inherits Window {
@@ -12,56 +14,215 @@ export component AppWindow inherits Window {
     min-height: 700px;
     max-height: 700px;
     icon: @image-url("../assets/logo.png");
-    background: #1e1e1e;
-    // no-frame: true; // Comentado temporariamente - arrasto não funciona com no-frame no Linux
+    background: #1e1e1ef3;
+
     in-out property <int> counter: 0;
     callback increment-counter();
     callback decrement-counter();
     callback minimize-window();
     callback close-window();
-
-    VerticalBox {
-
+    VerticalLayout {
         alignment: end;
+        spacing: 0px;
+        padding: 0px;
+        height: parent.height;
+        width: parent.width;
 
         HorizontalBox {
-            width: parent.width;
-            spacing: 0px;
-            padding: 0px;
-            Button {
-                width: parent.width / 4;
-                height: 60px;
+            Text {
+                text: "teste";
+            }
+        }
+
+        GridLayout {
+            spacing: 5px;
+            padding: 5px;
+            height: 400px;
+
+            CalcButton {
+                bg_color: #303030;
                 text: "C";
                 clicked => {
-                    // root.decrement-counter();
-                }
+                        // root.decrement-counter();
+                    }
             }
 
-            Button {
-                width: parent.width / 4;
-                height: 60px;
+            CalcButton {
+                bg_color: #303030;
                 text: "+/-";
                 clicked => {
-                    // root.increment-counter();
-                }
+                        // root.increment-counter();
+                    }
             }
 
-            Button {
-                width: parent.width / 4;
-                height: 60px;
+            CalcButton {
+                bg_color: #303030;
                 text: "%";
                 clicked => {
-                    // root.increment-counter();
-                }
+                        // root.increment-counter();
+                    }
             }
 
-            Button {
-                width: parent.width / 4;
-                height: 60px;
+            CalcButton {
+                bg_color: #df7b00;
                 text: "÷";
                 clicked => {
-                    // root.increment-counter();
-                }
+                        // root.increment-counter();
+                    }
+            }
+
+            CalcButton {
+                row: 1;
+                col: 0;
+
+                bg_color: #3b3b3b;
+                text: "7";
+                clicked => {
+                        // root.decrement-counter();
+                    }
+            }
+
+            CalcButton {
+                row: 1;
+                col: 1;
+                bg_color: #3b3b3b;
+                text: "8";
+                clicked => {
+                        // root.increment-counter();
+                    }
+            }
+
+            CalcButton {
+                row: 1;
+                col: 2;
+                bg_color: #3b3b3b;
+                text: "9";
+                clicked => {
+                        // root.increment-counter();
+                    }
+            }
+
+            CalcButton {
+                row: 1;
+                col: 3;
+                bg_color: #df7b00;
+                text: "x";
+                clicked => {
+                        // root.increment-counter();
+                    }
+            }
+
+            CalcButton {
+                row: 2;
+                col: 0;
+                bg_color: #3b3b3b;
+                text: "4";
+                clicked => {
+                        // root.decrement-counter();
+                    }
+            }
+
+            CalcButton {
+                row: 2;
+                col: 1;
+
+                bg_color: #3b3b3b;
+                text: "5";
+                clicked => {
+                        // root.increment-counter();
+                    }
+            }
+
+            CalcButton {
+                row: 2;
+                col: 2;
+                bg_color: #3b3b3b;
+                text: "6";
+                clicked => {
+                        // root.increment-counter();
+                    }
+            }
+
+            CalcButton {
+                row: 2;
+                col: 3;
+
+                bg_color: #df7b00;
+                text: "-";
+                clicked => {
+                        // root.increment-counter();
+                    }
+            }
+
+            CalcButton {
+                row: 3;
+                col: 0;
+                bg_color: #3b3b3b;
+                text: "1";
+                clicked => {
+                        // root.decrement-counter();
+                    }
+            }
+
+            CalcButton {
+                row: 3;
+                col: 1;
+                bg_color: #3b3b3b;
+                text: "2";
+                clicked => {
+                        // root.increment-counter();
+                    }
+            }
+
+            CalcButton {
+                row: 3;
+                col: 2;
+                bg_color: #3b3b3b;
+                text: "3";
+                clicked => {
+                        // root.increment-counter();
+                    }
+            }
+
+            CalcButton {
+                row: 3;
+                col: 3;
+                bg_color: #df7b00;
+                text: "+";
+                clicked => {
+                        // root.increment-counter();
+                    }
+            }
+
+            CalcButton {
+                row: 4;
+                col: 0;
+                colspan: 2;
+                bg_color: #3b3b3b;
+                text: "0";
+                clicked => {
+                        // root.decrement-counter();
+                    }
+            }
+
+            CalcButton {
+                row: 4;
+                col: 2;
+                bg_color: #3b3b3b;
+                text: ".";
+                clicked => {
+                        // root.increment-counter();
+                    }
+            }
+
+            CalcButton {
+                row: 4;
+                col: 3;
+                bg_color: #df7b00;
+                text: "=";
+                clicked => {
+                        // root.increment-counter();
+                    }
             }
         }
     }
