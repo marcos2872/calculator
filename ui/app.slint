@@ -1,4 +1,9 @@
-import { Button, VerticalBox, HorizontalBox } from "std-widgets.slint";
+import {
+    Button,
+    VerticalBox,
+    HorizontalBox,
+} from "std-widgets.slint";
+
 
 export component AppWindow inherits Window {
     title: "Calculator";
@@ -8,44 +13,54 @@ export component AppWindow inherits Window {
     max-height: 700px;
     icon: @image-url("../assets/logo.png");
     background: #1e1e1e;
+    // no-frame: true; // Comentado temporariamente - arrasto não funciona com no-frame no Linux
     in-out property <int> counter: 0;
     callback increment-counter();
     callback decrement-counter();
-    callback close-window();
     callback minimize-window();
+    callback close-window();
 
     VerticalBox {
-        padding-top: 40px;
-        alignment: center;
-        Text {
-            text: "Bem-vindo ao Slint!";
-            font-size: 24px;
-            color: white;
-            horizontal-alignment: center;
-        }
 
-        Text {
-            text: "Contador: " + counter;
-            font-size: 32px;
-            horizontal-alignment: center;
-            color: #0066cc;
-        }
+        alignment: end;
 
         HorizontalBox {
-            alignment: center;
-            spacing: 20px;
+            width: parent.width;
+            spacing: 0px;
+            padding: 0px;
             Button {
-                text: "➖ Decrementar";
+                width: parent.width / 4;
+                height: 60px;
+                text: "C";
                 clicked => {
-                    root.decrement-counter();
+                    // root.decrement-counter();
                 }
             }
 
             Button {
-                text: "➕ Incrementar";
-                primary: true;
+                width: parent.width / 4;
+                height: 60px;
+                text: "+/-";
                 clicked => {
-                    root.increment-counter();
+                    // root.increment-counter();
+                }
+            }
+
+            Button {
+                width: parent.width / 4;
+                height: 60px;
+                text: "%";
+                clicked => {
+                    // root.increment-counter();
+                }
+            }
+
+            Button {
+                width: parent.width / 4;
+                height: 60px;
+                text: "÷";
+                clicked => {
+                    // root.increment-counter();
                 }
             }
         }
