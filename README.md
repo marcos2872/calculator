@@ -11,6 +11,7 @@ Uma aplicação de calculadora desktop desenvolvida em Rust + Slint.
 Este é um projeto de calculadora desktop com interface gráfica moderna. A aplicação foi desenvolvida usando Rust como linguagem de programação e Slint como framework para a interface do usuário.
 
 **Características:**
+
 - Interface limpa e moderna
 - Operações matemáticas básicas
 - Design responsivo com componentes customizados
@@ -49,6 +50,7 @@ make run
 ```
 
 **Outros comandos úteis:**
+
 ```bash
 make watch      # Desenvolvimento com hot reload
 make build      # Compila em modo debug
