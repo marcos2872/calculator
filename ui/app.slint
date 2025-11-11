@@ -2,78 +2,17 @@ import { Button, VerticalBox, HorizontalBox } from "std-widgets.slint";
 
 export component AppWindow inherits Window {
     title: "Calculator";
-    preferred-width: 400px;
-    preferred-height: 800px;
     min-width: 400px;
+    max-width: 400px;
     min-height: 800px;
+    max-height: 800px;
     icon: @image-url("../assets/logo.png");
-    no-frame: true;
+    background: #1e1e1e;
     in-out property <int> counter: 0;
     callback increment-counter();
     callback decrement-counter();
     callback close-window();
     callback minimize-window();
-    background: #1e1e1e;
-    Rectangle {
-        height: 40px;
-        background: parent.background;
-        x: 0;
-        y: 0;
-        width: parent.width;
-        HorizontalBox {
-            padding: 8px;
-            spacing: 10px;
-
-            Rectangle {
-                width: 24px;
-                height: 24px;
-                border-radius: 4px;
-                Image {
-                    source: @image-url("../assets/logo.png");
-                    width: 24px;
-                    height: 24px;
-                }
-            }
-
-            Rectangle {
-                horizontal-stretch: 1;
-                Text {
-                    text: "Calculator";
-                    color: white;
-                    font-size: 14px;
-                    font-weight: 600;
-                    vertical-alignment: center;
-                }
-            }
-
-            HorizontalBox {
-                spacing: 14px;
-                Rectangle {
-                    width: 14px;
-                    height: 14px;
-                    border-radius: 14px;
-                    background: #40FF00;
-                    min-touch := TouchArea {
-                        clicked => {
-                            root.minimize-window();
-                        }
-                    }
-                }
-
-                Rectangle {
-                    width: 14px;
-                    height: 14px;
-                    border-radius: 14px;
-                    background: #FF2B00;
-                    close-touch := TouchArea {
-                        clicked => {
-                            root.close-window();
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     VerticalBox {
         padding-top: 40px;
