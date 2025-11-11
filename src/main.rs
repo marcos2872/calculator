@@ -5,199 +5,193 @@ slint::include_modules!();
 fn main() -> Result<(), slint::PlatformError> {
     let ui = AppWindow::new()?;
 
+    // Limpar calculadora
     let ui_weak = ui.as_weak();
     ui.on_clean(move || {
-        let ui = ui_weak.unwrap();
-        ui.set_calc(SharedString::from("0"));
+        ui_weak.unwrap().set_calc(SharedString::from("0"));
     });
 
+    // Deletar último caractere
     let ui_weak = ui.as_weak();
     ui.on_delete(move || {
         let ui = ui_weak.unwrap();
-        let current = ui.get_calc();
+        let current = ui.get_calc().to_string();
         let new_value = if current.len() <= 1 {
             "0"
         } else {
-            current.get(..current.len() - 1).unwrap_or("0")
+            &current[..current.len() - 1]
         };
         ui.set_calc(SharedString::from(new_value));
     });
 
+    // Adicionar caractere
     let ui_weak = ui.as_weak();
     ui.on_add_character(move |value| {
         let ui = ui_weak.unwrap();
-        let current = ui.get_calc();
+        let current = ui.get_calc().to_string();
         
-        // Caso especial: substituir "0" inicial
-        if current == "0" && !value.starts_with('.') && !is_operator_char(&value) {
+        // Substituir "0" inicial por número
+        if current == "0" && value.chars().next().unwrap().is_ascii_digit() {
             ui.set_calc(value);
             return;
         }
         
-        // Verificar se o último caractere é um operador
-        let last_is_operator = current.chars()
-            .last()
-            .map(|c| is_operator_char(&c.to_string()))
-            .unwrap_or(false);
-        
-        // Se ambos são operadores, não adicionar
-        if last_is_operator && is_operator_char(&value) {
+        // Evitar operadores consecutivos
+        let last_char = current.chars().last().unwrap_or('0');
+        let new_char = value.chars().next().unwrap();
+        if is_operator(last_char) && is_operator(new_char) {
             return;
         }
         
-        // Adicionar o caractere
-        let new_calc = format!("{}{}", current, value);
-        ui.set_calc(SharedString::from(new_calc));
+        ui.set_calc(SharedString::from(format!("{}{}", current, value)));
     });
 
+    // Calcular resultado
     let ui_weak = ui.as_weak();
     ui.on_calculate(move || {
         let ui = ui_weak.unwrap();
-        let mut expression = ui.get_calc().to_string();
-
-        // Normalização básica
-        expression = expression.replace('x', "*").replace('÷', "/");
-
-        // Remover operador final se existir (exceto %)
-        if let Some(last) = expression.chars().last() {
-            if matches!(last, '+' | '-' | '*' | '/') {
-                expression.pop();
-            }
-        }
-
-        // Tokenização simples
-        let mut tokens: Vec<String> = Vec::new();
-        let mut current = String::new();
-        for ch in expression.chars() {
-            if ch.is_ascii_digit() || ch == '.' {
-                current.push(ch);
-            } else if matches!(ch, '+' | '-' | '*' | '/' | '%') {
-                if !current.is_empty() { 
-                    tokens.push(current.clone()); 
-                    current.clear(); 
-                }
-                tokens.push(ch.to_string());
-            } else {
-                // caractere inválido
-                ui.set_calc(SharedString::from("Err"));
-                return;
-            }
-        }
-        if !current.is_empty() { tokens.push(current); }
-
-        if tokens.is_empty() {
-            ui.set_calc(SharedString::from("0"));
-            return;
-        }
-
-        // Primeira passagem: resolver % (como operador unário pós-fixo)
-        let mut after_percent: Vec<String> = Vec::new();
-        let mut i = 0;
-        while i < tokens.len() {
-            if tokens[i] == "%" {
-                if after_percent.is_empty() { 
-                    ui.set_calc(SharedString::from("Err")); 
-                    return; 
-                }
-                let left = after_percent.pop().unwrap();
-                let l: f64 = match left.parse::<f64>() {
-                    Ok(v) if v.is_finite() => v,
-                    _ => { ui.set_calc(SharedString::from("Err")); return; }
-                };
-                after_percent.push((l / 100.0).to_string());
-            } else {
-                after_percent.push(tokens[i].clone());
-            }
-            i += 1;
-        }
-
-        // Segunda passagem: * e /
-        let mut pass: Vec<String> = Vec::new();
-        let mut i = 0;
-        while i < after_percent.len() {
-            if after_percent[i] == "*" || after_percent[i] == "/" {
-                if pass.is_empty() || i + 1 >= after_percent.len() { 
-                    ui.set_calc(SharedString::from("Err")); 
-                    return; 
-                }
-                let left = pass.pop().unwrap();
-                let l: f64 = match left.parse::<f64>() {
-                    Ok(v) if v.is_finite() => v,
-                    _ => { ui.set_calc(SharedString::from("Err")); return; }
-                };
-                let right = &after_percent[i + 1];
-                let r: f64 = match right.parse::<f64>() {
-                    Ok(v) if v.is_finite() => v,
-                    _ => { ui.set_calc(SharedString::from("Err")); return; }
-                };
-                
-                let res = if after_percent[i] == "*" { 
-                    l * r 
-                } else { 
-                    if r == 0.0 { 
-                        ui.set_calc(SharedString::from("Err")); 
-                        return; 
-                    }
-                    l / r 
-                };
-                
-                pass.push(res.to_string());
-                i += 2;
-            } else {
-                pass.push(after_percent[i].clone());
-                i += 1;
-            }
-        }
-
-        // Terceira passagem: + e -
-        if pass.is_empty() { 
-            ui.set_calc(SharedString::from("0")); 
-            return; 
-        }
+        let expr = ui.get_calc()
+            .to_string()
+            .replace('x', "*")
+            .replace('÷', "/");
         
-        let mut result: f64 = match pass[0].parse::<f64>() {
-            Ok(v) if v.is_finite() => v,
-            _ => { ui.set_calc(SharedString::from("Err")); return; }
-        };
-        
-        let mut i = 1;
-        while i + 1 < pass.len() {
-            let op = &pass[i];
-            let rhs: f64 = match pass[i + 1].parse::<f64>() {
-                Ok(v) if v.is_finite() => v,
-                _ => { ui.set_calc(SharedString::from("Err")); return; }
-            };
-            
-            result = match op.as_str() {
-                "+" => result + rhs,
-                "-" => result - rhs,
-                _ => { ui.set_calc(SharedString::from("Err")); return; }
-            };
-            i += 2;
+        match evaluate(&expr) {
+            Ok(result) => {
+                let output = format_result(result);
+                ui.set_calc(SharedString::from(output));
+            }
+            Err(_) => ui.set_calc(SharedString::from("Err"))
         }
-
-        if !result.is_finite() { 
-            ui.set_calc(SharedString::from("Err")); 
-            return; 
-        }
-
-        // Formatação: remover .0
-        let mut out = if result.fract().abs() < 1e-12 { 
-            format!("{:.0}", result) 
-        } else { 
-            format!("{}", result) 
-        };
-        
-        if out.len() > 16 { 
-            out = format!("{:.8e}", result); 
-        }
-
-        ui.set_calc(SharedString::from(out));
     });
 
     ui.run()
 }
 
-fn is_operator_char(c: &str) -> bool {
-    matches!(c, "+" | "-" | "x" | "%" | "÷" )
+fn is_operator(c: char) -> bool {
+    matches!(c, '+' | '-' | 'x' | '÷' | '%')
+}
+
+fn evaluate(expr: &str) -> Result<f64, ()> {
+    let tokens = tokenize(expr)?;
+    let tokens = apply_percent(tokens)?;
+    let tokens = apply_mul_div(tokens)?;
+    apply_add_sub(tokens)
+}
+
+fn tokenize(expr: &str) -> Result<Vec<String>, ()> {
+    let mut tokens = Vec::new();
+    let mut num = String::new();
+    
+    for ch in expr.trim().chars() {
+        if ch.is_ascii_digit() || ch == '.' {
+            num.push(ch);
+        } else if matches!(ch, '+' | '-' | '*' | '/' | '%') {
+            if !num.is_empty() {
+                tokens.push(num.clone());
+                num.clear();
+            }
+            tokens.push(ch.to_string());
+        } else if !ch.is_whitespace() {
+            return Err(());
+        }
+    }
+    
+    if !num.is_empty() {
+        tokens.push(num);
+    }
+    
+    // Remove operador final
+    if let Some(last) = tokens.last() {
+        if matches!(last.as_str(), "+" | "-" | "*" | "/") {
+            tokens.pop();
+        }
+    }
+    
+    Ok(tokens)
+}
+
+fn apply_percent(tokens: Vec<String>) -> Result<Vec<String>, ()> {
+    let mut result = Vec::new();
+    
+    for token in tokens {
+        if token == "%" {
+            let num: String = result.pop().ok_or(())?;
+            let val: f64 = num.parse().map_err(|_| ())?;
+            result.push((val / 100.0).to_string());
+        } else {
+            result.push(token);
+        }
+    }
+    
+    Ok(result)
+}
+
+fn apply_mul_div(tokens: Vec<String>) -> Result<Vec<String>, ()> {
+    let mut result = Vec::new();
+    let mut i = 0;
+    
+    while i < tokens.len() {
+        if i + 2 < tokens.len() && matches!(tokens[i + 1].as_str(), "*" | "/") {
+            let left: f64 = tokens[i].parse().map_err(|_| ())?;
+            let right: f64 = tokens[i + 2].parse().map_err(|_| ())?;
+            
+            let val = match tokens[i + 1].as_str() {
+                "*" => left * right,
+                "/" => {
+                    if right == 0.0 { return Err(()); }
+                    left / right
+                }
+                _ => return Err(())
+            };
+            
+            result.push(val.to_string());
+            i += 3;
+        } else {
+            result.push(tokens[i].clone());
+            i += 1;
+        }
+    }
+    
+    Ok(result)
+}
+
+fn apply_add_sub(tokens: Vec<String>) -> Result<f64, ()> {
+    if tokens.is_empty() {
+        return Ok(0.0);
+    }
+    
+    let mut result: f64 = tokens[0].parse().map_err(|_| ())?;
+    let mut i = 1;
+    
+    while i + 1 < tokens.len() {
+        let right: f64 = tokens[i + 1].parse().map_err(|_| ())?;
+        
+        result = match tokens[i].as_str() {
+            "+" => result + right,
+            "-" => result - right,
+            _ => return Err(())
+        };
+        
+        i += 2;
+    }
+    
+    if !result.is_finite() {
+        return Err(());
+    }
+    
+    Ok(result)
+}
+
+fn format_result(num: f64) -> String {
+    let formatted = if num.fract().abs() < 1e-10 {
+        format!("{:.0}", num)
+    } else {
+        format!("{}", num)
+    };
+    
+    if formatted.len() > 16 {
+        format!("{:.8e}", num)
+    } else {
+        formatted
+    }
 }
